@@ -42,7 +42,7 @@ extern int32_t lsrac_convert_audio(
         void *  dst_data,     void *  src_data,
         int32_t dst_type,     int32_t src_type,
         int64_t dst_samples,  int64_t src_samples,
-        int32_t dst_stride,   int32_t src_stride,                /* default = 1 */
+        int32_t dst_stride,   int32_t src_stride,                /* default = 1, unit: samples */
                               int32_t src_extra_samples_before,  /* default = 0 */
                               int32_t src_extra_samples_after);  /* default = 0 */
 
@@ -73,8 +73,17 @@ extern int32_t convert_audio(
         return LSRAC_RET_VAL_ARGUMENT_ERROR;
     }
 
-    double input_index = 0;
-    double src_ratio = ((double)src_samples) / ((double)dst_samples);
+    //double input_index = 0;
+    //double src_ratio = ((double)src_samples) / ((double)dst_samples);
+
+    (void)dst_type;
+    (void)src_type;
+    (void)dst_samples;
+    (void)src_samples;
+    (void)dst_stride;
+    (void)src_stride;
+    (void)src_extra_samples_before;
+    (void)src_extra_samples_after;
 
     return LSRAC_RET_VAL_OK;
 }
