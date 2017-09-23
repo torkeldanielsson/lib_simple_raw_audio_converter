@@ -20,7 +20,7 @@ int main()
 
     float * sample_data = drwav_open_and_read_file_f32("test.wav", &channels, &sample_rate, &total_sample_count);
 
-    if (sample_data == nullptr) {
+    if (sample_data == NULL) {
         printf("Error opening and reading test wav file\n");
         return -1;
     }

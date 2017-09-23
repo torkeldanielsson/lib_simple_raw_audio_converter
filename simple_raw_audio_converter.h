@@ -75,10 +75,12 @@ extern int32_t lsrac_convert_audio(
 
 #include <cstddef>
 
-static const struct filter_coefficients_t {   
+struct lsrac_filter_coefficients_t {   
     int32_t increment;
     float coeffs[2464];
-} filter_coefficients;
+};
+
+extern const lsrac_filter_coefficients_t lsrac_filter_coefficients;
 
 extern int32_t convert_audio(
         void *  dst_data,       void *  src_data,
@@ -88,8 +90,8 @@ extern int32_t convert_audio(
                                 int32_t src_extra_samples_before = 0, 
                                 int32_t src_extra_samples_after = 0)
 {
-    if (dst_data == nullptr ||
-        src_data == nullptr) {
+    if (dst_data == NULL ||
+        src_data == NULL) {
         return LSRAC_RET_VAL_ARGUMENT_ERROR;
     }
 
@@ -108,7 +110,7 @@ extern int32_t convert_audio(
     return LSRAC_RET_VAL_OK;
 }
 
-filter_coefficients_t filter_coefficients = { 
+const lsrac_filter_coefficients_t lsrac_filter_coefficients = { 
     128,
     {
          8.31472372954840555082e-01,
