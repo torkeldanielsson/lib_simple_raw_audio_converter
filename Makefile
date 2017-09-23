@@ -24,3 +24,4 @@ opt: $(OBJS)
 clean:
 	rm -f *.o
 	rm -f $(OUTPUTNAME)
+	
