@@ -34,15 +34,17 @@ extern "C" {
 #include <stdint.h>
 
 #define LSRAC_TYPE_INT_16   1
-#define LSRAC_TYPE_INT_32   2
+// #define LSRAC_TYPE_INT_32   2
 #define LSRAC_TYPE_FLOAT_32 3
-#define LSRAC_TYPE_FLOAT_64 4
+// #define LSRAC_TYPE_FLOAT_64 4
 
 extern int32_t lsrac_convert_audio(
-        void * dst_data,      void * src_data,
+        void *  dst_data,     void *  src_data,
         int32_t dst_type,     int32_t src_type,
         int64_t dst_samples,  int64_t src_samples,
-        int32_t dst_stride,   int32_t src_stride); /* default = 1 */
+        int32_t dst_stride,   int32_t src_stride,                /* default = 1 */
+                              int32_t src_extra_samples_before,  /* default = 0 */
+                              int32_t src_extra_samples_after);  /* default = 0 */
 
 #ifdef __cplusplus
 }
@@ -67,10 +69,12 @@ static inline double fmod_one (double x)
 }
 
 extern int32_t convert_audio(
-        void * dst_data,        void * src_data,
+        void *  dst_data,       void *  src_data,
         int32_t dst_type,       int32_t src_type,
         int64_t dst_samples,    int64_t src_samples,
-        int32_t dst_stride = 1, int32_t src_stride = 1)
+        int32_t dst_stride = 1, int32_t src_stride = 1,
+                                int32_t src_extra_samples_before = 0, 
+                                int32_t src_extra_samples_after = 0)
 {
     if (dst_data == nullptr ||
         src_data == nullptr) {
