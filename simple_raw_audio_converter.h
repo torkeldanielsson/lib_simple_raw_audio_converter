@@ -13,7 +13,7 @@ USAGE
     dst_data must be allocated by user and large enough.
 
     dst_samples and src_samples are assumed to be covering the whole segment
-    (so sample rates will be calculated based off them)
+    (sample rates will be calculated based off them)
 
 
 LICENSE

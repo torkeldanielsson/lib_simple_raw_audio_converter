@@ -25,9 +25,9 @@ int main()
         return -1;
     }
 
-    drwav_free(sample_data);
+    
 
-    printf("hello world");
+    drwav_free(sample_data);
 
     return 0;
 }
