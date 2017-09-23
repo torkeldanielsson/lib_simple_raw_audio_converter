@@ -54,19 +54,11 @@ extern int32_t lsrac_convert_audio(
 
 #ifdef LSRAC_IMPLEMENTATION
 
-#define LSRAC_RET_VAL_ERROR  -1
-#define LSRAC_RET_VAL_OK      1
+#define LSRAC_RET_VAL_ARGUMENT_ERROR  -2
+#define LSRAC_RET_VAL_ERROR           -1
+#define LSRAC_RET_VAL_OK               1
 
-static inline double fmod_one (double x)
-{   
-    double res ;
-
-    res = x - lrint (x) ;
-    if (res < 0.0)
-        return res + 1.0 ;
-
-    return res ;
-}
+#include <cstddef>
 
 extern int32_t convert_audio(
         void *  dst_data,       void *  src_data,
@@ -78,7 +70,7 @@ extern int32_t convert_audio(
 {
     if (dst_data == nullptr ||
         src_data == nullptr) {
-        return LSRAC_RET_VAL_ERROR;
+        return LSRAC_RET_VAL_ARGUMENT_ERROR;
     }
 
     double input_index = 0;

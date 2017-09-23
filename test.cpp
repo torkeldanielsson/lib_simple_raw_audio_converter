@@ -1,6 +1,8 @@
 /*  lsrac tests
 */
 
+#define LSRAC_IMPLEMENTATION
+
 #include "simple_raw_audio_converter.h"
 
 #include <stdio.h>
