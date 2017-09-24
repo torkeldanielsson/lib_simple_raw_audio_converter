@@ -38,7 +38,7 @@ INSPIRATION
     https://github.com/nothings/stb
 
 
-CONTRIBUTORS
+AUTHOR
 
     Torkel Danielsson
 
