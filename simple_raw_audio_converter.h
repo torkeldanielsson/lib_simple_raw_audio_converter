@@ -9,6 +9,10 @@ USAGE
         #define LSRAC_IMPLEMENTATION
     in the file that you want to have the implementation - just like STB.
 
+    lsrac_convert_audio(..) is the only function, it will convert one stream of samples from
+    one sample rate to another.
+
+    Note:
     dst_data must be allocated by user and large enough.
 
     dst_samples and src_samples are assumed to be covering the whole segment
