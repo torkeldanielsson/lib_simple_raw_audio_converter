@@ -61,7 +61,8 @@ struct s16_stereo_sample {
 int32_t WriteWavePCM(
     s16_stereo_sample * data, 
     size_t samples, 
-    const char * file_name)
+    const char * file_name,
+    const uint32_t sample_rate = 44100)
 {
     if (data == NULL || file_name == NULL) {
         return false;
@@ -84,19 +85,18 @@ int32_t WriteWavePCM(
     static const uint32_t fRIFFChunkDescriptorLength   = 12;
     static const uint32_t fFmtSubChunkDescriptorLength = 24;
 
-    file_format_header hdr;
+    file_format_header wav_header;
 
     for (size_t i = 0; i < 4; ++i) {
-        hdr.fChunkID[i]     = fChunkID[i];
-        hdr.fFormat[i]      = fFormat[i];
-        hdr.fSubchunk1ID[i] = fSubchunk1ID[i];
-        hdr.fSubchunk2ID[i] = fSubchunk2ID[i];
+        wav_header.fChunkID[i]     = fChunkID[i];
+        wav_header.fFormat[i]      = fFormat[i];
+        wav_header.fSubchunk1ID[i] = fSubchunk1ID[i];
+        wav_header.fSubchunk2ID[i] = fSubchunk2ID[i];
     }
 
-    static const uint32_t SAMPLE_RATE   = 44100;
     static const uint16_t BITS_PER_BYTE = 8;
 
-    const uint32_t fByteRate = SAMPLE_RATE * N_CHANNELS * fBitsPerSample / 
+    const uint32_t fByteRate = sample_rate * N_CHANNELS * fBitsPerSample / 
                                BITS_PER_BYTE;
 
     const uint16_t fBlockAlign = N_CHANNELS * fBitsPerSample / BITS_PER_BYTE;
@@ -107,31 +107,31 @@ int32_t WriteWavePCM(
     const uint32_t fChunkSize = fRIFFChunkDescriptorLength + 
                                 fFmtSubChunkDescriptorLength + fSubchunk2Size;
 
-    hdr.fAudioFormat   = fAudioFormat;
-    hdr.fBitsPerSample = fBitsPerSample;
-    hdr.fBlockAlign    = fBlockAlign;
-    hdr.fByteRate      = fByteRate;
-    hdr.fChunkSize     = fChunkSize;
-    hdr.fNumChannels   = N_CHANNELS;
-    hdr.fSampleRate    = SAMPLE_RATE;
-    hdr.fSubchunk1Size = fSubchunk1Size;
-    hdr.fSubchunk2Size = fSubchunk2Size;
+    wav_header.fAudioFormat   = fAudioFormat;
+    wav_header.fBitsPerSample = fBitsPerSample;
+    wav_header.fBlockAlign    = fBlockAlign;
+    wav_header.fByteRate      = fByteRate;
+    wav_header.fChunkSize     = fChunkSize;
+    wav_header.fNumChannels   = N_CHANNELS;
+    wav_header.fSampleRate    = sample_rate;
+    wav_header.fSubchunk1Size = fSubchunk1Size;
+    wav_header.fSubchunk2Size = fSubchunk2Size;
 
     bool little_endian = is_little_endian();
 
     if (!little_endian) {
-        hdr.fAudioFormat   = little_endian_uint16_t(hdr.fAudioFormat);
-        hdr.fBitsPerSample = little_endian_uint16_t(hdr.fBitsPerSample);
-        hdr.fBlockAlign    = little_endian_uint16_t(hdr.fBlockAlign);
-        hdr.fByteRate      = little_endian_uint32_t(hdr.fByteRate);
-        hdr.fChunkSize     = little_endian_uint32_t(hdr.fChunkSize);
-        hdr.fNumChannels   = little_endian_uint16_t(hdr.fNumChannels);
-        hdr.fSampleRate    = little_endian_uint32_t(hdr.fSampleRate);
-        hdr.fSubchunk1Size = little_endian_uint32_t(hdr.fSubchunk1Size);
-        hdr.fSubchunk2Size = little_endian_uint32_t(hdr.fSubchunk2Size);
+        wav_header.fAudioFormat   = little_endian_uint16_t(wav_header.fAudioFormat);
+        wav_header.fBitsPerSample = little_endian_uint16_t(wav_header.fBitsPerSample);
+        wav_header.fBlockAlign    = little_endian_uint16_t(wav_header.fBlockAlign);
+        wav_header.fByteRate      = little_endian_uint32_t(wav_header.fByteRate);
+        wav_header.fChunkSize     = little_endian_uint32_t(wav_header.fChunkSize);
+        wav_header.fNumChannels   = little_endian_uint16_t(wav_header.fNumChannels);
+        wav_header.fSampleRate    = little_endian_uint32_t(wav_header.fSampleRate);
+        wav_header.fSubchunk1Size = little_endian_uint32_t(wav_header.fSubchunk1Size);
+        wav_header.fSubchunk2Size = little_endian_uint32_t(wav_header.fSubchunk2Size);
     }
 
-    size_t ws = fwrite(&hdr, sizeof(hdr), 1, file);
+    size_t ws = fwrite(&wav_header, sizeof(wav_header), 1, file);
 
     if (ws != 1) {
         fclose(file);
@@ -148,7 +148,7 @@ int32_t WriteWavePCM(
 
     ws = fwrite(data, sizeof(uint16_t), samples * N_CHANNELS, file);
     fclose(file);
-    return ws == samples * N_CHANNELS;
+    return ws;
 }
 
 int main()
@@ -176,9 +176,10 @@ int main()
     int32_t written = WriteWavePCM(  
         reinterpret_cast<s16_stereo_sample *>(sample_data),
         samples_per_channel,
-        "test_out.wav");
+        "test_out.wav",
+        sample_rate);
     if (written < samples_per_channel) {
-        printf("Error - written less than expected to test out wav file\n");
+        printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
         return -1;
     }
 
