@@ -58,7 +58,7 @@ struct s16_stereo_sample {
     uint16_t right;
 };
 
-int32_t WriteWavePCM(
+int32_t write_wav(
     s16_stereo_sample * data, 
     size_t samples, 
     const char * file_name,
@@ -211,8 +211,8 @@ int main()
             printf("Test 1: FAIL\n");
         }
 
-        int32_t written = WriteWavePCM(  
-            reinterpret_cast<s16_stereo_sample *>(sample_data),
+        int32_t written = write_wav(  
+            reinterpret_cast<s16_stereo_sample *>(dst_data),
             samples_per_channel,
             "test_1.wav",
             sample_rate);
@@ -220,6 +220,55 @@ int main()
             printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
             return -1;
         }
+
+        free(dst_data);
+    }
+
+    {
+        /*
+         *  TEST 2: downsampling
+         */
+
+        int64_t new_samples_per_channel = samples_per_channel / 2;
+
+        int16_t * dst_data = reinterpret_cast<int16_t *>(malloc(new_samples_per_channel * channels * sizeof(int16_t)));
+
+        int32_t conversion_result = -1;
+        bool test_ok = true;
+
+        conversion_result = lsrac_convert_audio(
+                dst_data,                sample_data,
+                new_samples_per_channel, samples_per_channel,
+                2,                       2);
+        if (conversion_result != LSRAC_RET_VAL_OK) {
+            test_ok = false;
+        }
+
+        conversion_result = lsrac_convert_audio(
+                dst_data + 1,            sample_data + 1,
+                new_samples_per_channel, samples_per_channel,
+                2,                       2);
+        if (conversion_result != LSRAC_RET_VAL_OK) {
+            test_ok = false;
+        }
+
+        if (test_ok) {
+            printf("Test 2: successful\n");
+        } else {
+            printf("Test 2: FAIL\n");
+        }
+
+        int32_t written = write_wav(  
+            reinterpret_cast<s16_stereo_sample *>(dst_data),
+            new_samples_per_channel,
+            "test_2.wav",
+            sample_rate);
+        if (written < samples_per_channel) {
+            printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
+            return -1;
+        }
+
+        free(dst_data);
     }
 
     drwav_free(sample_data);

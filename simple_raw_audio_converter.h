@@ -93,6 +93,8 @@ extern int32_t lsrac_convert_audio(
         for (size_t i = 0; i < static_cast<size_t>(src_samples); ++i) {
             dst_data[dst_stride * i] = src_data[src_stride * i];
         }
+
+        return LSRAC_RET_VAL_OK;
     }
 
     //double input_index = 0;
@@ -105,7 +107,7 @@ extern int32_t lsrac_convert_audio(
     (void)src_extra_samples_before;
     (void)src_extra_samples_after;
 
-    return LSRAC_RET_VAL_OK;
+    return LSRAC_RET_VAL_ERROR;
 }
 
 const lsrac_filter_coefficients_t lsrac_filter_coefficients = { 
