@@ -173,17 +173,54 @@ int main()
 
     int32_t samples_per_channel = total_sample_count / channels;
 
-    int32_t written = WriteWavePCM(  
-        reinterpret_cast<s16_stereo_sample *>(sample_data),
-        samples_per_channel,
-        "test_out.wav",
-        sample_rate);
-    if (written < samples_per_channel) {
-        printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
-        return -1;
-    }
+    {
+        /*
+         *  TEST 1: no change in sample rate
+         */
 
-    printf("test successful\n");
+        int16_t * dst_data = reinterpret_cast<int16_t *>(malloc(total_sample_count * sizeof(int16_t)));
+
+        int32_t conversion_result = -1;
+        bool test_ok = true;
+
+        conversion_result = lsrac_convert_audio(
+                dst_data,            sample_data,
+                samples_per_channel, samples_per_channel,
+                2,                   2);
+        if (conversion_result != LSRAC_RET_VAL_OK) {
+            test_ok = false;
+        }
+
+        conversion_result = lsrac_convert_audio(
+                dst_data + 1,            sample_data + 1,
+                samples_per_channel,     samples_per_channel,
+                2,                       2);
+        if (conversion_result != LSRAC_RET_VAL_OK) {
+            test_ok = false;
+        }
+
+        for (size_t i = 0; i < total_sample_count; ++i) {
+            if (sample_data[i] != dst_data[i]) {
+                test_ok = false;
+            }
+        }
+
+        if (test_ok) {
+            printf("Test 1: successful\n");
+        } else {
+            printf("Test 1: FAIL\n");
+        }
+
+        int32_t written = WriteWavePCM(  
+            reinterpret_cast<s16_stereo_sample *>(sample_data),
+            samples_per_channel,
+            "test_1.wav",
+            sample_rate);
+        if (written < samples_per_channel) {
+            printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
+            return -1;
+        }
+    }
 
     drwav_free(sample_data);
 

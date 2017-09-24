@@ -24,4 +24,5 @@ opt: $(OBJS)
 clean:
 	rm -f *.o
 	rm -f $(OUTPUTNAME)
+	rm -f test_*.wav
 	
