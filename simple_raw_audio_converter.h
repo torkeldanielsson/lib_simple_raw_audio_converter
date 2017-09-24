@@ -1,4 +1,4 @@
-/*  lib_simple_raw_audio_converter - (lsrac) - https://github.com/torkeldanielsson/lib_simple_raw_audio_converter
+/*  lib_simple_raw_audio_converter - (lsrac) - 0.1 - https://github.com/torkeldanielsson/lib_simple_raw_audio_converter
 
     Single file header only library for converting raw audio formats and sample rates. 
 
@@ -19,7 +19,7 @@ USAGE
     and sample rates will be calculated based off them. This poses the limitation
     that you must chose proper start and end times for the conversions.
 
-    Converstions are only for one channel at a time. Use the stride parameters to
+    Conversions are only for one channel at a time. Use the stride parameters to
     support interleaved formats.
 
 

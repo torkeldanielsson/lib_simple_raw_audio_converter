@@ -11,8 +11,9 @@ lsrac_convert_audio(..) is the only function, it will convert one stream of samp
 
 *Note:*
 
-- dst_data must be allocated by user and large enough.
-- dst_samples and src_samples are assumed to be covering the whole segment and sample rates will be calculated based off them. This poses the limitation that you must chose proper start and end times for the conversions.
--  Converstions are only for one channel at a time. Use the stride parameters to support interleaved formats.
+- dst_data must be allocated by user and large enough
+- dst_samples and src_samples are assumed to be covering the whole segment and sample rates will be calculated based off them (proper start and end times must be chosen for conversions)
+- Conversions are only for one channel at a time 
+- Use the stride parameters to support interleaved formats (see test.cpp)
 
 See test.cpp for a working example of how to use lsrac.
