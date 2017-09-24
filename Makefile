@@ -1,7 +1,7 @@
 OUTPUTNAME = test.exe
 
 CC     = gcc
-CFLAGS = -std=c++98 -Wall 
+CFLAGS = -std=c++11 -Wall 
 
 OBJS = test.o
 

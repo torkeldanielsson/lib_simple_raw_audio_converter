@@ -229,7 +229,10 @@ int main()
          *  TEST 2: downsampling
          */
 
-        int64_t new_samples_per_channel = samples_per_channel / 2;
+        float resampling_factor = 0.5f;
+
+        int64_t new_samples_per_channel = static_cast<int64_t>(resampling_factor * static_cast<float>(samples_per_channel));
+        int64_t new_sample_rate = static_cast<uint32_t>(resampling_factor * static_cast<float>(sample_rate));
 
         int16_t * dst_data = reinterpret_cast<int16_t *>(malloc(new_samples_per_channel * channels * sizeof(int16_t)));
 
@@ -262,7 +265,7 @@ int main()
             reinterpret_cast<s16_stereo_sample *>(dst_data),
             new_samples_per_channel,
             "test_2.wav",
-            sample_rate);
+            new_sample_rate);
         if (written < samples_per_channel) {
             printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
             return -1;

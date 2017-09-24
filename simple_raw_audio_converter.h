@@ -63,19 +63,26 @@ extern int32_t lsrac_convert_audio(
 
 #ifdef LSRAC_IMPLEMENTATION
 
+#include <math.h>
+#include <limits.h>
+
 #define LSRAC_RET_VAL_ARGUMENT_ERROR  -2
 #define LSRAC_RET_VAL_ERROR           -1
 #define LSRAC_RET_VAL_OK               1
 
-#include <cstddef>
+#define ARRAY_COUNT(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-struct lsrac_filter_coefficients_t {   
-    int32_t increment;
-    float coeffs[2464];
+struct lsrac_filter_t {   
+    const int32_t increment;
+    const float coefficients[4624];
 };
 
-extern const lsrac_filter_coefficients_t lsrac_filter_coefficients;
+extern const lsrac_filter_t lsrac_filter;
 
+static inline float clamp(float x, float val)
+{
+    return fmin(fmax(x, -val), val);
+}
 extern int32_t lsrac_convert_audio(
         int16_t * dst_data,       int16_t * src_data,
         int64_t   dst_samples,    int64_t   src_samples,
@@ -97,20 +104,76 @@ extern int32_t lsrac_convert_audio(
         return LSRAC_RET_VAL_OK;
     }
 
-    //double input_index = 0;
-    //double ratio = ((double)src_samples) / ((double)dst_samples);
+    float ratio = ((float)dst_samples) / ((float)src_samples);
 
-    (void)dst_samples;
-    (void)src_samples;
-    (void)dst_stride;
-    (void)src_stride;
-    (void)src_extra_samples_before;
-    (void)src_extra_samples_after;
+    if (ratio < 1.0f) {
+        // Downsample
+
+        float base_tick_time = 1000.0f; // time of all samples to convert = 1000 'ticks'
+
+        float dst_ticks_per_sample = base_tick_time / static_cast<float>(dst_samples);
+        float src_ticks_per_sample = base_tick_time / static_cast<float>(src_samples);
+
+        float dst_half_sample_offset_ticks = 0.5f * dst_ticks_per_sample;
+        float src_half_sample_offset_ticks = 0.5f * src_ticks_per_sample;
+
+        float ticks_per_filter_increment = dst_ticks_per_sample / static_cast<float>(lsrac_filter.increment);
+        size_t filter_pos_increment = static_cast<size_t>(src_ticks_per_sample / ticks_per_filter_increment);
+
+        int64_t current_dst_sample = 0;
+
+        while (current_dst_sample < dst_samples) {
+
+            float current_time_ticks = static_cast<float>(current_dst_sample) * dst_ticks_per_sample + dst_half_sample_offset_ticks;
+
+            float value = 0.0f;
+
+            {
+                // Left part of sinc filter
+                int64_t current_src_sample = static_cast<int64_t>((current_time_ticks - src_half_sample_offset_ticks) / src_ticks_per_sample);
+                float dst_pos_to_src_pos_ticks = current_time_ticks - src_half_sample_offset_ticks - static_cast<float>(current_src_sample) * src_ticks_per_sample;
+                size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_increment);
+
+                int16_t * actual_src_data = src_data - src_stride * src_extra_samples_before;
+
+                while (current_src_sample > -src_extra_samples_before &&
+                       current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
+
+                    value += lsrac_filter.coefficients[current_filter_pos] * static_cast<float>(actual_src_data[src_stride * (current_src_sample + src_extra_samples_before)]);
+
+                    current_src_sample--;
+                    current_filter_pos += filter_pos_increment;
+                }
+            }
+
+            {
+                // Right part of sinc filter
+                size_t current_src_sample = static_cast<size_t>((current_time_ticks - src_half_sample_offset_ticks) / src_ticks_per_sample) + 1;
+                float dst_pos_to_src_pos_ticks = static_cast<float>(current_src_sample) * src_ticks_per_sample + src_half_sample_offset_ticks - current_time_ticks;
+                size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_increment);
+
+                while (current_src_sample < src_samples + src_extra_samples_after &&
+                       current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
+
+                    value += lsrac_filter.coefficients[current_filter_pos] * static_cast<float>(src_data[src_stride * current_src_sample]);
+
+                    current_src_sample++;
+                    current_filter_pos += filter_pos_increment;
+                }
+            }
+
+            dst_data[dst_stride * current_dst_sample] = static_cast<int16_t>(clamp(ratio * value, static_cast<float>(SHRT_MAX)));
+
+            current_dst_sample += 1;
+        }
+
+        return LSRAC_RET_VAL_OK;
+    }
 
     return LSRAC_RET_VAL_ERROR;
 }
 
-const lsrac_filter_coefficients_t lsrac_filter_coefficients = { 
+const lsrac_filter_t lsrac_filter = { 
     128,
     {
          8.31472372954840555082e-01,
