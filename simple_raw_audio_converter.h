@@ -64,7 +64,7 @@ extern int32_t lsrac_convert_audio(
         uint64_t  dst_stride,     uint64_t  src_stride,                /* default = 1, unit: samples */
                                   int32_t   src_extra_samples_before,  /* default = 0 */
                                   int32_t   src_extra_samples_after);  /* default = 0 */
-
+        
 #ifdef __cplusplus
 }
 #endif
@@ -82,23 +82,23 @@ extern int32_t lsrac_convert_audio(
 
 #define ARRAY_COUNT(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-struct lsrac_filter_t {   
+typedef struct lsrac_filter_s {
     const int32_t increment;
     const float coefficients[4624];
-};
+} lsrac_filter_t;
 
 extern const lsrac_filter_t lsrac_filter;
 
 static inline float clamp(float x, float val)
 {
-    return fmin(fmax(x, -val), val);
+    return fminf(fmaxf(x, -val), val);
 }
 
 extern int32_t lsrac_convert_audio(
         int16_t * dst_data,       int16_t * src_data,
         uint64_t  dst_samples,    uint64_t  src_samples,
         uint64_t  dst_stride = 1, uint64_t  src_stride = 1,
-                                  int32_t   src_extra_samples_before = 0, 
+                                  int32_t   src_extra_samples_before = 0,
                                   int32_t   src_extra_samples_after = 0)
 {
     if (dst_data == NULL ||
@@ -237,7 +237,6 @@ extern int32_t lsrac_convert_audio(
 
         return LSRAC_RET_VAL_OK;
     }
-
 
     return LSRAC_RET_VAL_ERROR;
 }

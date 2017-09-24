@@ -3,6 +3,8 @@ Single file, header only, library for converting raw audio formats and sample ra
 
 It uses a sinc filter to make what is hopefully an ok sample rate conversion without distortions. (The filter coefficients are the same as in libsamplerate.)
 
+Uses C++11 features.
+
 # Use
 
 Before #including, #define LSRAC_IMPLEMENTATION in the file that you want to have the implementation - just like STB.
