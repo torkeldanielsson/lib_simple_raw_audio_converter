@@ -19,6 +19,12 @@ USAGE
     support interleaved formats.
 
 
+POSSIBLE IMPROVEMENTS
+
+    The filters should probably be applied outside in, to be better from a numerical
+    float perspective (small numbers first, then large).
+
+
 INSPIRATION
     
     The following sources were used as inspiration for this work:
@@ -83,9 +89,10 @@ static inline float clamp(float x, float val)
 {
     return fmin(fmax(x, -val), val);
 }
+
 extern int32_t lsrac_convert_audio(
         int16_t * dst_data,       int16_t * src_data,
-        int64_t   dst_samples,    int64_t   src_samples,
+        uint64_t  dst_samples,    uint64_t  src_samples,
         uint64_t  dst_stride = 1, uint64_t  src_stride = 1,
                                   int32_t   src_extra_samples_before = 0, 
                                   int32_t   src_extra_samples_after = 0)
@@ -106,21 +113,21 @@ extern int32_t lsrac_convert_audio(
 
     float ratio = ((float)dst_samples) / ((float)src_samples);
 
+    float base_tick_time = 1000000.0f; // time of all samples to convert = 1000 'ticks'
+
+    float dst_ticks_per_sample = base_tick_time / static_cast<float>(dst_samples);
+    float src_ticks_per_sample = base_tick_time / static_cast<float>(src_samples);
+
+    float dst_half_sample_offset_ticks = 0.5f * dst_ticks_per_sample;
+    float src_half_sample_offset_ticks = 0.5f * src_ticks_per_sample;
+
     if (ratio < 1.0f) {
         // Downsample
 
-        float base_tick_time = 1000.0f; // time of all samples to convert = 1000 'ticks'
+        float ticks_per_filter_step = dst_ticks_per_sample / static_cast<float>(lsrac_filter.increment);
+        size_t filter_pos_increment = static_cast<size_t>(src_ticks_per_sample / ticks_per_filter_step);
 
-        float dst_ticks_per_sample = base_tick_time / static_cast<float>(dst_samples);
-        float src_ticks_per_sample = base_tick_time / static_cast<float>(src_samples);
-
-        float dst_half_sample_offset_ticks = 0.5f * dst_ticks_per_sample;
-        float src_half_sample_offset_ticks = 0.5f * src_ticks_per_sample;
-
-        float ticks_per_filter_increment = dst_ticks_per_sample / static_cast<float>(lsrac_filter.increment);
-        size_t filter_pos_increment = static_cast<size_t>(src_ticks_per_sample / ticks_per_filter_increment);
-
-        int64_t current_dst_sample = 0;
+        uint64_t current_dst_sample = 0;
 
         while (current_dst_sample < dst_samples) {
 
@@ -132,11 +139,11 @@ extern int32_t lsrac_convert_audio(
                 // Left part of sinc filter
                 int64_t current_src_sample = static_cast<int64_t>((current_time_ticks - src_half_sample_offset_ticks) / src_ticks_per_sample);
                 float dst_pos_to_src_pos_ticks = current_time_ticks - src_half_sample_offset_ticks - static_cast<float>(current_src_sample) * src_ticks_per_sample;
-                size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_increment);
+                size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_step);
 
                 int16_t * actual_src_data = src_data - src_stride * src_extra_samples_before;
 
-                while (current_src_sample > -src_extra_samples_before &&
+                while (current_src_sample >= -src_extra_samples_before &&
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
                     value += lsrac_filter.coefficients[current_filter_pos] * static_cast<float>(actual_src_data[src_stride * (current_src_sample + src_extra_samples_before)]);
@@ -148,11 +155,11 @@ extern int32_t lsrac_convert_audio(
 
             {
                 // Right part of sinc filter
-                size_t current_src_sample = static_cast<size_t>((current_time_ticks - src_half_sample_offset_ticks) / src_ticks_per_sample) + 1;
+                int64_t current_src_sample = static_cast<int64_t>((current_time_ticks - src_half_sample_offset_ticks) / src_ticks_per_sample) + 1;
                 float dst_pos_to_src_pos_ticks = static_cast<float>(current_src_sample) * src_ticks_per_sample + src_half_sample_offset_ticks - current_time_ticks;
-                size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_increment);
+                size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_step);
 
-                while (current_src_sample < src_samples + src_extra_samples_after &&
+                while (current_src_sample < static_cast<int64_t>(src_samples + src_extra_samples_after) &&
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
                     value += lsrac_filter.coefficients[current_filter_pos] * static_cast<float>(src_data[src_stride * current_src_sample]);
@@ -169,6 +176,64 @@ extern int32_t lsrac_convert_audio(
 
         return LSRAC_RET_VAL_OK;
     }
+
+    if (ratio > 1.0f) {
+        // Upsample
+        // Maybe this should use Lanczos coefficients rather than the (longer) sinc?
+
+        float ticks_per_filter_step = src_ticks_per_sample / static_cast<float>(lsrac_filter.increment);
+        size_t filter_pos_increment = static_cast<size_t>(lsrac_filter.increment);
+
+        uint64_t current_dst_sample = 0;
+
+        while (current_dst_sample < dst_samples) {
+
+            float current_time_ticks = static_cast<float>(current_dst_sample) * dst_ticks_per_sample + dst_half_sample_offset_ticks;
+
+            float value = 0.0f;
+
+            {
+                // Left part of sinc filter
+                int64_t current_src_sample = static_cast<int64_t>(floor((current_time_ticks - src_half_sample_offset_ticks) / src_ticks_per_sample));
+                float dst_pos_to_src_pos_ticks = current_time_ticks - src_half_sample_offset_ticks - static_cast<float>(current_src_sample) * src_ticks_per_sample;
+                size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_step);
+
+                int16_t * actual_src_data = src_data - src_stride * src_extra_samples_before;
+
+                while (current_src_sample >= -src_extra_samples_before &&
+                       current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
+
+                    value += lsrac_filter.coefficients[current_filter_pos] * static_cast<float>(actual_src_data[src_stride * (current_src_sample + src_extra_samples_before)]);
+
+                    current_src_sample--;
+                    current_filter_pos += filter_pos_increment;
+                }
+            }
+
+            {
+                // Right part of sinc filter
+                int64_t current_src_sample = static_cast<int64_t>(floor((current_time_ticks - src_half_sample_offset_ticks) / src_ticks_per_sample)) + 1;
+                float dst_pos_to_src_pos_ticks = static_cast<float>(current_src_sample) * src_ticks_per_sample + src_half_sample_offset_ticks - current_time_ticks;
+                size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_step);
+
+                while (current_src_sample < static_cast<int64_t>(src_samples + src_extra_samples_after) &&
+                       current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
+
+                    value += lsrac_filter.coefficients[current_filter_pos] * static_cast<float>(src_data[src_stride * current_src_sample]);
+
+                    current_src_sample++;
+                    current_filter_pos += filter_pos_increment;
+                }
+            }
+
+            dst_data[dst_stride * current_dst_sample] = static_cast<int16_t>(clamp(value, static_cast<float>(SHRT_MAX)));
+
+            current_dst_sample += 1;
+        }
+
+        return LSRAC_RET_VAL_OK;
+    }
+
 
     return LSRAC_RET_VAL_ERROR;
 }

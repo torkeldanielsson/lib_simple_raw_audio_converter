@@ -229,7 +229,7 @@ int main()
          *  TEST 2: downsampling
          */
 
-        float resampling_factor = 0.5f;
+        float resampling_factor = 0.57256f;
 
         int64_t new_samples_per_channel = static_cast<int64_t>(resampling_factor * static_cast<float>(samples_per_channel));
         int64_t new_sample_rate = static_cast<uint32_t>(resampling_factor * static_cast<float>(sample_rate));
@@ -265,6 +265,56 @@ int main()
             reinterpret_cast<s16_stereo_sample *>(dst_data),
             new_samples_per_channel,
             "test_2.wav",
+            new_sample_rate);
+        if (written < samples_per_channel) {
+            printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
+            return -1;
+        }
+
+        free(dst_data);
+    }
+
+    {
+        /*
+         *  TEST 3: upsampling
+         */
+
+        float resampling_factor = 2.0f;
+
+        int64_t new_samples_per_channel = static_cast<int64_t>(resampling_factor * static_cast<float>(samples_per_channel));
+        int64_t new_sample_rate = static_cast<uint32_t>(resampling_factor * static_cast<float>(sample_rate));
+
+        int16_t * dst_data = reinterpret_cast<int16_t *>(malloc(new_samples_per_channel * channels * sizeof(int16_t)));
+
+        int32_t conversion_result = -1;
+        bool test_ok = true;
+
+        conversion_result = lsrac_convert_audio(
+                dst_data,                sample_data,
+                new_samples_per_channel, samples_per_channel,
+                2,                       2);
+        if (conversion_result != LSRAC_RET_VAL_OK) {
+            test_ok = false;
+        }
+
+        conversion_result = lsrac_convert_audio(
+                dst_data + 1,            sample_data + 1,
+                new_samples_per_channel, samples_per_channel,
+                2,                       2);
+        if (conversion_result != LSRAC_RET_VAL_OK) {
+            test_ok = false;
+        }
+
+        if (test_ok) {
+            printf("Test 3: successful\n");
+        } else {
+            printf("Test 3: FAIL\n");
+        }
+
+        int32_t written = write_wav(  
+            reinterpret_cast<s16_stereo_sample *>(dst_data),
+            new_samples_per_channel,
+            "test_3.wav",
             new_sample_rate);
         if (written < samples_per_channel) {
             printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
