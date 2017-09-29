@@ -34,8 +34,6 @@ static uint32_t little_endian_uint32_t(uint32_t num) {
              ((0xff00 & num) << 8));
 }
 
-#define ARRAY_COUNT(arr) (sizeof(arr) / sizeof((arr)[0]))
-
 #pragma pack(0)
 struct file_format_header {
     char fChunkID[4];
@@ -214,7 +212,7 @@ int main()
         if (test_ok) {
             printf("Test %d: successful\n", test_number);
         } else {
-            printf("Test %d: FAIL\n", test_number);
+            printf("Test %d: FAIL (%d)\n", test_number, conversion_result);
         }
 
         char out_file_name[256];
@@ -272,7 +270,7 @@ int main()
         if (test_ok) {
             printf("Test %d: successful\n", test_number);
         } else {
-            printf("Test %d: FAIL\n", test_number);
+            printf("Test %d: FAIL (%d)\n", test_number, conversion_result);
         }
 
         char out_file_name[256];
@@ -330,7 +328,7 @@ int main()
         if (test_ok) {
             printf("Test %d: successful\n", test_number);
         } else {
-            printf("Test %d: FAIL\n", test_number);
+            printf("Test %d: FAIL (%d)\n", test_number, conversion_result);
         }
 
         char out_file_name[256];
@@ -350,6 +348,68 @@ int main()
         test_number++;
 
         free(dst_data);
+    }
+
+    {
+        /*
+         *  TEST: small sample test
+         */
+
+        int16_t src_data[]          = { 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, };
+        int16_t dst_data[]          = {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, };
+        int16_t expected_dst_data[] = { 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, };
+
+        int32_t conversion_result = -1;
+        bool test_ok = true;
+
+        if (ARRAY_COUNT(dst_data) != ARRAY_COUNT(expected_dst_data)) {
+
+            printf("ERROR IN TEST %d, aborting tests \n", test_number);
+            return -1;
+        }
+
+        int32_t edge_avoid = 4;
+
+        conversion_result = lsrac_convert_audio(
+                dst_data,                src_data + edge_avoid,
+                ARRAY_COUNT(dst_data),   ARRAY_COUNT(src_data) - 2*edge_avoid,
+                sizeof(int16_t),         sizeof(int16_t),
+                edge_avoid,              edge_avoid);
+        if (conversion_result != LSRAC_RET_VAL_OK) {
+            test_ok = false;
+        }
+
+        printf("src:");
+        for (size_t i = 0; i < ARRAY_COUNT(src_data); ++i) {
+            printf(" %d", src_data[i]);
+        }
+        printf("\n");
+
+        printf("dst:");
+        for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
+            printf(" %d", dst_data[i]);
+        }
+        printf("\n");
+
+        printf("expected_dst:");
+        for (size_t i = 0; i < ARRAY_COUNT(expected_dst_data); ++i) {
+            printf(" %d", expected_dst_data[i]);
+        }
+        printf("\n");
+
+        for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
+            if (abs(dst_data[i] - expected_dst_data[i]) > 2) {
+                test_ok = false;
+            }
+        }
+
+        if (test_ok) {
+            printf("Test %d: successful\n", test_number);
+        } else {
+            printf("Test %d: FAIL (%d)\n", test_number, conversion_result);
+        }
+
+        test_number++;
     }
 
     drwav_free(sample_data);
