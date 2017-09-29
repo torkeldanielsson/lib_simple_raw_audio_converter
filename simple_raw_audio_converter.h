@@ -1,10 +1,10 @@
 /*  lib_simple_raw_audio_converter - (lsrac) - 0.1 - https://github.com/torkeldanielsson/lib_simple_raw_audio_converter
 
-    Single file header only library for converting raw audio formats and sample rates. 
+    Single file header only library for converting raw audio formats and sample rates.
 
 
 USAGE
-  
+
     Before #including,
         #define LSRAC_IMPLEMENTATION
     in the file that you want to have the implementation - just like STB.
@@ -30,7 +30,7 @@ POSSIBLE IMPROVEMENTS
 
 
 INSPIRATION
-    
+
     The following sources were used as inspiration for this work:
 
     https://ccrma.stanford.edu/~jos/resample/Implementation.html
@@ -58,13 +58,17 @@ extern "C" {
 
 #include <stdint.h>
 
-extern int32_t lsrac_convert_audio(
-        int16_t * dst_data,       int16_t * src_data,
-        int64_t   dst_samples,    int64_t   src_samples,
-        uint64_t  dst_stride,     uint64_t  src_stride,                /* default = 1, unit: samples */
-                                  int32_t   src_extra_samples_before,  /* default = 0 */
-                                  int32_t   src_extra_samples_after);  /* default = 0 */
-        
+#define LSRAC_RET_VAL_ARGUMENT_ERROR  -2
+#define LSRAC_RET_VAL_ERROR           -1
+#define LSRAC_RET_VAL_OK               1
+
+int32_t lsrac_convert_audio(
+        int16_t * dst_data,         int16_t * src_data,
+        uint64_t  dst_samples,      uint64_t  src_samples,
+        uint64_t  dst_stride_bytes, uint64_t  src_stride_bytes,
+                                    int32_t   src_extra_samples_before,
+                                    int32_t   src_extra_samples_after);
+
 #ifdef __cplusplus
 }
 #endif
@@ -76,9 +80,9 @@ extern int32_t lsrac_convert_audio(
 #include <math.h>
 #include <limits.h>
 
-#define LSRAC_RET_VAL_ARGUMENT_ERROR  -2
-#define LSRAC_RET_VAL_ERROR           -1
-#define LSRAC_RET_VAL_OK               1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define ARRAY_COUNT(arr) (sizeof(arr) / sizeof((arr)[0]))
 
@@ -94,13 +98,16 @@ static inline float clamp(float x, float val)
     return fminf(fmaxf(x, -val), val);
 }
 
-extern int32_t lsrac_convert_audio(
-        int16_t * dst_data,       int16_t * src_data,
-        uint64_t  dst_samples,    uint64_t  src_samples,
-        uint64_t  dst_stride = 1, uint64_t  src_stride = 1,
-                                  int32_t   src_extra_samples_before = 0,
-                                  int32_t   src_extra_samples_after = 0)
+int32_t lsrac_convert_audio(
+        int16_t * dst_data,         int16_t * src_data,
+        uint64_t  dst_samples,      uint64_t  src_samples,
+        uint64_t  dst_stride_bytes, uint64_t  src_stride_bytes,
+                                    int32_t   src_extra_samples_before,
+                                    int32_t   src_extra_samples_after)
 {
+    uint64_t dst_stride = dst_stride_bytes / sizeof(int16_t);
+    uint64_t src_stride = src_stride_bytes / sizeof(int16_t);
+
     if (dst_data == NULL ||
         src_data == NULL) {
         return LSRAC_RET_VAL_ARGUMENT_ERROR;
@@ -241,7 +248,7 @@ extern int32_t lsrac_convert_audio(
     return LSRAC_RET_VAL_ERROR;
 }
 
-const lsrac_filter_t lsrac_filter = { 
+const lsrac_filter_t lsrac_filter = {
     128,
     {
          8.31472372954840555082e-01,
@@ -2707,7 +2714,11 @@ const lsrac_filter_t lsrac_filter = {
         -3.59691078491283933177e-07,
         -2.38952398011216803052e-07,
         -1.22889677382464548894e-07,
-    },   
+    },
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LSRAC_IMPLEMENTATION

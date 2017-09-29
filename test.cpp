@@ -186,15 +186,17 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data,            sample_data,
                 samples_per_channel, samples_per_channel,
-                2,                   2);
+                4,                   4,
+                0,                   0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
         }
 
         conversion_result = lsrac_convert_audio(
-                dst_data + 1,            sample_data + 1,
-                samples_per_channel,     samples_per_channel,
-                2,                       2);
+                dst_data + 1,        sample_data + 1,
+                samples_per_channel, samples_per_channel,
+                4,                   4,
+                0,                   0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
         }
@@ -242,7 +244,8 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data,                sample_data,
                 new_samples_per_channel, samples_per_channel,
-                2,                       2);
+                4,                       4,
+                0,                       0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
         }
@@ -250,7 +253,8 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data + 1,            sample_data + 1,
                 new_samples_per_channel, samples_per_channel,
-                2,                       2);
+                4,                       4,
+                0,                       0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
         }
@@ -292,7 +296,8 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data,                sample_data,
                 new_samples_per_channel, samples_per_channel,
-                2,                       2);
+                4,                       4,
+                0,                       0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
         }
@@ -300,7 +305,8 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data + 1,            sample_data + 1,
                 new_samples_per_channel, samples_per_channel,
-                2,                       2);
+                4,                       4,
+                0,                       0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
         }
