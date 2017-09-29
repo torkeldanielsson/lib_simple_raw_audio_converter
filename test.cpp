@@ -34,6 +34,8 @@ static uint32_t little_endian_uint32_t(uint32_t num) {
              ((0xff00 & num) << 8));
 }
 
+#define ARRAY_COUNT(arr) (sizeof(arr) / sizeof((arr)[0]))
+
 #pragma pack(0)
 struct file_format_header {
     char fChunkID[4];
@@ -173,9 +175,11 @@ int main()
 
     int32_t samples_per_channel = total_sample_count / channels;
 
+    int32_t test_number = 1;
+
     {
         /*
-         *  TEST 1: no change in sample rate
+         *  TEST: no change in sample rate
          */
 
         int16_t * dst_data = reinterpret_cast<int16_t *>(malloc(total_sample_count * sizeof(int16_t)));
@@ -208,27 +212,33 @@ int main()
         }
 
         if (test_ok) {
-            printf("Test 1: successful\n");
+            printf("Test %d: successful\n", test_number);
         } else {
-            printf("Test 1: FAIL\n");
+            printf("Test %d: FAIL\n", test_number);
         }
+
+        char out_file_name[256];
+
+        snprintf(out_file_name, ARRAY_COUNT(out_file_name), "test_%d.wav", test_number);
 
         int32_t written = write_wav(  
             reinterpret_cast<s16_stereo_sample *>(dst_data),
             samples_per_channel,
-            "test_1.wav",
+            out_file_name,
             sample_rate);
         if (written < samples_per_channel) {
             printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
             return -1;
         }
 
+        test_number++;
+
         free(dst_data);
     }
 
     {
         /*
-         *  TEST 2: downsampling
+         *  TEST: downsampling
          */
 
         float resampling_factor = 0.57256f;
@@ -260,27 +270,33 @@ int main()
         }
 
         if (test_ok) {
-            printf("Test 2: successful\n");
+            printf("Test %d: successful\n", test_number);
         } else {
-            printf("Test 2: FAIL\n");
+            printf("Test %d: FAIL\n", test_number);
         }
+
+        char out_file_name[256];
+
+        snprintf(out_file_name, ARRAY_COUNT(out_file_name), "test_%d.wav", test_number);
 
         int32_t written = write_wav(  
             reinterpret_cast<s16_stereo_sample *>(dst_data),
             new_samples_per_channel,
-            "test_2.wav",
+            out_file_name,
             new_sample_rate);
         if (written < samples_per_channel) {
             printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
             return -1;
         }
 
+        test_number++;
+
         free(dst_data);
     }
 
     {
         /*
-         *  TEST 3: upsampling
+         *  TEST: upsampling
          */
 
         float resampling_factor = 2.0f;
@@ -312,20 +328,26 @@ int main()
         }
 
         if (test_ok) {
-            printf("Test 3: successful\n");
+            printf("Test %d: successful\n", test_number);
         } else {
-            printf("Test 3: FAIL\n");
+            printf("Test %d: FAIL\n", test_number);
         }
+
+        char out_file_name[256];
+
+        snprintf(out_file_name, ARRAY_COUNT(out_file_name), "test_%d.wav", test_number);
 
         int32_t written = write_wav(  
             reinterpret_cast<s16_stereo_sample *>(dst_data),
             new_samples_per_channel,
-            "test_3.wav",
+            out_file_name,
             new_sample_rate);
         if (written < samples_per_channel) {
             printf("Error - written less than expected to test out wav file (%d < %d)\n", written, samples_per_channel);
             return -1;
         }
+
+        test_number++;
 
         free(dst_data);
     }
