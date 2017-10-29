@@ -16,6 +16,8 @@
 
 #include <stdio.h>
 
+static const float f32_to_s16 = 32767.0f;      // cast<r32>(SHRT_MAX);
+
 static bool is_little_endian() 
 {
     volatile uint32_t i = 0x01234567;
@@ -58,7 +60,7 @@ struct s16_stereo_sample {
     uint16_t right;
 };
 
-int32_t write_wav(
+int32_t write_wav_s16(
     s16_stereo_sample * data, 
     size_t samples, 
     const char * file_name,
@@ -151,13 +153,44 @@ int32_t write_wav(
     return ws;
 }
 
+struct f32_stereo_sample {
+    float left;
+    float right;
+};
+
+int32_t write_wav_f32(
+    f32_stereo_sample * data, 
+    size_t samples, 
+    const char * file_name,
+    const uint32_t sample_rate = 44100)
+{
+    int16_t * converted_data = reinterpret_cast<int16_t *>(malloc(samples * sizeof(s16_stereo_sample)));
+
+    float * data_samples = reinterpret_cast<float *>(data);
+
+    for (size_t i = 0; i < 2*samples; ++i) {
+        converted_data[i] = static_cast<int16_t>(data_samples[i] * f32_to_s16);
+    }
+
+    int32_t res = write_wav_s16(
+        reinterpret_cast<s16_stereo_sample *>(converted_data), 
+        samples, 
+        file_name, 
+        sample_rate);
+
+    free(converted_data);
+
+    return res;
+}
+
+
 int main()
 {
     unsigned int channels;
     unsigned int sample_rate;
     drwav_uint64 total_sample_count;
 
-    int16_t * sample_data = drwav_open_and_read_file_s16(
+    float * sample_data = drwav_open_and_read_file_f32(
             "test.wav", 
             &channels, 
             &sample_rate, 
@@ -180,7 +213,7 @@ int main()
          *  TEST: no change in sample rate
          */
 
-        int16_t * dst_data = reinterpret_cast<int16_t *>(malloc(total_sample_count * sizeof(int16_t)));
+        float * dst_data = reinterpret_cast<float *>(malloc(total_sample_count * sizeof(float)));
 
         int32_t conversion_result = -1;
         bool test_ok = true;
@@ -188,7 +221,7 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data,            sample_data,
                 samples_per_channel, samples_per_channel,
-                4,                   4,
+                2*sizeof(float),     2*sizeof(float),
                 0,                   0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
@@ -197,7 +230,7 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data + 1,        sample_data + 1,
                 samples_per_channel, samples_per_channel,
-                4,                   4,
+                2*sizeof(float),     2*sizeof(float),
                 0,                   0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
@@ -219,8 +252,8 @@ int main()
 
         snprintf(out_file_name, ARRAY_COUNT(out_file_name), "test_%d.wav", test_number);
 
-        int32_t written = write_wav(  
-            reinterpret_cast<s16_stereo_sample *>(dst_data),
+        int32_t written = write_wav_f32(  
+            reinterpret_cast<f32_stereo_sample *>(dst_data),
             samples_per_channel,
             out_file_name,
             sample_rate);
@@ -244,7 +277,7 @@ int main()
         int64_t new_samples_per_channel = static_cast<int64_t>(resampling_factor * static_cast<float>(samples_per_channel));
         int64_t new_sample_rate = static_cast<uint32_t>(resampling_factor * static_cast<float>(sample_rate));
 
-        int16_t * dst_data = reinterpret_cast<int16_t *>(malloc(new_samples_per_channel * channels * sizeof(int16_t)));
+        float * dst_data = reinterpret_cast<float *>(malloc(new_samples_per_channel * channels * sizeof(float)));
 
         int32_t conversion_result = -1;
         bool test_ok = true;
@@ -252,7 +285,7 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data,                sample_data,
                 new_samples_per_channel, samples_per_channel,
-                4,                       4,
+                2*sizeof(float),         2*sizeof(float),
                 0,                       0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
@@ -261,7 +294,7 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data + 1,            sample_data + 1,
                 new_samples_per_channel, samples_per_channel,
-                4,                       4,
+                2*sizeof(float),         2*sizeof(float),
                 0,                       0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
@@ -277,8 +310,8 @@ int main()
 
         snprintf(out_file_name, ARRAY_COUNT(out_file_name), "test_%d.wav", test_number);
 
-        int32_t written = write_wav(  
-            reinterpret_cast<s16_stereo_sample *>(dst_data),
+        int32_t written = write_wav_f32(  
+            reinterpret_cast<f32_stereo_sample *>(dst_data),
             new_samples_per_channel,
             out_file_name,
             new_sample_rate);
@@ -302,7 +335,7 @@ int main()
         int64_t new_samples_per_channel = static_cast<int64_t>(resampling_factor * static_cast<float>(samples_per_channel));
         int64_t new_sample_rate = static_cast<uint32_t>(resampling_factor * static_cast<float>(sample_rate));
 
-        int16_t * dst_data = reinterpret_cast<int16_t *>(malloc(new_samples_per_channel * channels * sizeof(int16_t)));
+        float * dst_data = reinterpret_cast<float *>(malloc(new_samples_per_channel * channels * sizeof(float)));
 
         int32_t conversion_result = -1;
         bool test_ok = true;
@@ -310,7 +343,7 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data,                sample_data,
                 new_samples_per_channel, samples_per_channel,
-                4,                       4,
+                2*sizeof(float),         2*sizeof(float),
                 0,                       0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
@@ -319,7 +352,7 @@ int main()
         conversion_result = lsrac_convert_audio(
                 dst_data + 1,            sample_data + 1,
                 new_samples_per_channel, samples_per_channel,
-                4,                       4,
+                2*sizeof(float),         2*sizeof(float),
                 0,                       0);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
@@ -335,8 +368,8 @@ int main()
 
         snprintf(out_file_name, ARRAY_COUNT(out_file_name), "test_%d.wav", test_number);
 
-        int32_t written = write_wav(  
-            reinterpret_cast<s16_stereo_sample *>(dst_data),
+        int32_t written = write_wav_f32(  
+            reinterpret_cast<f32_stereo_sample *>(dst_data),
             new_samples_per_channel,
             out_file_name,
             new_sample_rate);
@@ -355,9 +388,9 @@ int main()
          *  TEST: small sample test
          */
 
-        int16_t src_data[]          = { 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, };
-        int16_t dst_data[]          = {  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, };
-        int16_t expected_dst_data[] = { 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, };
+        float src_data[]          = { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, };
+        float dst_data[]          = {  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f,  0.0f, };
+        float expected_dst_data[] = { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, };
 
         int32_t conversion_result = -1;
         bool test_ok = true;
@@ -368,12 +401,12 @@ int main()
             return -1;
         }
 
-        int32_t edge_avoid = 4;
+        int32_t edge_avoid = 0;
 
         conversion_result = lsrac_convert_audio(
                 dst_data,                src_data + edge_avoid,
                 ARRAY_COUNT(dst_data),   ARRAY_COUNT(src_data) - 2*edge_avoid,
-                sizeof(int16_t),         sizeof(int16_t),
+                sizeof(float),         sizeof(float),
                 edge_avoid,              edge_avoid);
         if (conversion_result != LSRAC_RET_VAL_OK) {
             test_ok = false;
@@ -381,19 +414,19 @@ int main()
 
         printf("src:");
         for (size_t i = 0; i < ARRAY_COUNT(src_data); ++i) {
-            printf(" %d", src_data[i]);
+            printf(" %f", src_data[i]);
         }
         printf("\n");
 
         printf("dst:");
         for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
-            printf(" %d", dst_data[i]);
+            printf(" %f", dst_data[i]);
         }
         printf("\n");
 
         printf("expected_dst:");
         for (size_t i = 0; i < ARRAY_COUNT(expected_dst_data); ++i) {
-            printf(" %d", expected_dst_data[i]);
+            printf(" %f", expected_dst_data[i]);
         }
         printf("\n");
 
