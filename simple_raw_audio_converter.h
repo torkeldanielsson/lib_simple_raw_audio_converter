@@ -226,16 +226,18 @@ int32_t lsrac_convert_audio(
 
             {
                 // Right part of sinc filter
-                int64_t current_src_sample = static_cast<int64_t>(floorf((current_time_ticks - src_half_sample_offset_ticks) / (float)src_ticks_per_sample)) + 1;
+                int64_t current_src_sample = static_cast<int64_t>(floorf((current_time_ticks - src_half_sample_offset_ticks) / static_cast<float>(src_ticks_per_sample))) + 1;
                 float dst_pos_to_src_pos_ticks = static_cast<float>(current_src_sample) * src_ticks_per_sample + src_half_sample_offset_ticks - current_time_ticks;
                 size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_step);
+
+                current_src_sample *= src_stride;
 
                 while (current_src_sample < static_cast<int64_t>(src_samples + (uint64_t)src_extra_samples_after) &&
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
-                    value += lsrac_filter.coefficients[current_filter_pos] * src_data[src_stride * uint64_t(current_src_sample)];
+                    value += lsrac_filter.coefficients[current_filter_pos] * src_data[static_cast<size_t>(current_src_sample)];
 
-                    current_src_sample++;
+                    current_src_sample += src_stride;
                     current_filter_pos += filter_pos_increment;
                 }
             }
