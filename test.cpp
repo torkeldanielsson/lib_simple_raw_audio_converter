@@ -401,7 +401,7 @@ int main()
             return -1;
         }
 
-        int32_t edge_avoid = 0;
+        int32_t edge_avoid = 4;
 
         conversion_result = lsrac_convert_audio(
                 dst_data,                src_data + edge_avoid,
@@ -463,7 +463,7 @@ int main()
             return -1;
         }
 
-        int32_t edge_avoid = 0;
+        int32_t edge_avoid = 4;
 
         conversion_result = lsrac_convert_audio(
                 dst_data,                src_data + edge_avoid,
