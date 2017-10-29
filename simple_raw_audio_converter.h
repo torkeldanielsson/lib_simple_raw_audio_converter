@@ -206,18 +206,20 @@ int32_t lsrac_convert_audio(
 
             {
                 // Left part of sinc filter
-                int64_t current_src_sample = static_cast<int64_t>(floorf((current_time_ticks - src_half_sample_offset_ticks) / (float)src_ticks_per_sample));
+                int64_t current_src_sample = static_cast<int64_t>(floorf((current_time_ticks - src_half_sample_offset_ticks) / static_cast<float>(src_ticks_per_sample)));
                 float dst_pos_to_src_pos_ticks = current_time_ticks - src_half_sample_offset_ticks - static_cast<float>(current_src_sample) * src_ticks_per_sample;
                 size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_step);
 
                 float * actual_src_data = src_data - src_stride * (uint64_t)src_extra_samples_before;
+                current_src_sample += src_extra_samples_before;
+                current_src_sample *= src_stride;
 
-                while (current_src_sample >= -src_extra_samples_before &&
+                while (current_src_sample >= 0 &&
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
-                    value += lsrac_filter.coefficients[current_filter_pos] * actual_src_data[src_stride * uint64_t(current_src_sample + src_extra_samples_before)];
+                    value += lsrac_filter.coefficients[current_filter_pos] * actual_src_data[static_cast<size_t>(current_src_sample)];
 
-                    current_src_sample--;
+                    current_src_sample -= src_stride;
                     current_filter_pos += filter_pos_increment;
                 }
             }
