@@ -181,7 +181,7 @@ int32_t lsrac_convert_audio(
                 }
             }
 
-            dst_data[dst_stride * current_dst_sample] = value;
+            dst_data[dst_stride * current_dst_sample] = value * ratio;
 
             current_dst_sample += 1;
         }
