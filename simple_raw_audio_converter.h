@@ -146,6 +146,7 @@ int32_t lsrac_convert_audio(
             float current_time_ticks = static_cast<float>(current_dst_sample) * dst_ticks_per_sample + dst_half_sample_offset_ticks;
 
             float value = 0.0f;
+            float normalization_value = 0.0f;
 
             {
                 // Left part of sinc filter
@@ -159,6 +160,7 @@ int32_t lsrac_convert_audio(
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
                     value += lsrac_filter.coefficients[current_filter_pos] * actual_src_data[src_stride * uint64_t(current_src_sample + src_extra_samples_before)];
+                    normalization_value += lsrac_filter.coefficients[current_filter_pos];
 
                     current_src_sample--;
                     current_filter_pos += filter_pos_increment;
@@ -175,13 +177,14 @@ int32_t lsrac_convert_audio(
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
                     value += lsrac_filter.coefficients[current_filter_pos] * src_data[src_stride * uint64_t(current_src_sample)];
+                    normalization_value += lsrac_filter.coefficients[current_filter_pos];
 
                     current_src_sample++;
                     current_filter_pos += filter_pos_increment;
                 }
             }
 
-            dst_data[dst_stride * current_dst_sample] = value * ratio;
+            dst_data[dst_stride * current_dst_sample] = value / normalization_value;
 
             current_dst_sample += 1;
         }
@@ -203,6 +206,7 @@ int32_t lsrac_convert_audio(
             float current_time_ticks = static_cast<float>(current_dst_sample) * dst_ticks_per_sample + dst_half_sample_offset_ticks;
 
             float value = 0.0f;
+            float normalization_value = 0.0f;
 
             {
                 // Left part of sinc filter
@@ -218,6 +222,7 @@ int32_t lsrac_convert_audio(
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
                     value += lsrac_filter.coefficients[current_filter_pos] * actual_src_data[static_cast<size_t>(current_src_sample)];
+                    normalization_value += lsrac_filter.coefficients[current_filter_pos];
 
                     current_src_sample -= src_stride;
                     current_filter_pos += filter_pos_increment;
@@ -236,13 +241,14 @@ int32_t lsrac_convert_audio(
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
                     value += lsrac_filter.coefficients[current_filter_pos] * src_data[static_cast<size_t>(current_src_sample)];
+                    normalization_value += lsrac_filter.coefficients[current_filter_pos];
 
                     current_src_sample += src_stride;
                     current_filter_pos += filter_pos_increment;
                 }
             }
 
-            dst_data[dst_stride * current_dst_sample] = value;
+            dst_data[dst_stride * current_dst_sample] = value / normalization_value;
 
             current_dst_sample += 1;
         }

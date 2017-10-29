@@ -413,7 +413,7 @@ int main()
         }
 
         for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
-            if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.03f*expected_dst_data[i]) {
+            if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.0000001f*expected_dst_data[i]) {
                 test_ok = false;
             }
         }
@@ -475,7 +475,7 @@ int main()
         }
 
         for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
-            if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.03f*expected_dst_data[i]) {
+            if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.0000001f*expected_dst_data[i]) {
                 test_ok = false;
             }
         }
@@ -544,7 +544,7 @@ int main()
         }
 
         for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
-            if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.03f*expected_dst_data[i]) {
+            if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.0000001f*expected_dst_data[i]) {
                 test_ok = false;
             }
         }
