@@ -412,24 +412,6 @@ int main()
             test_ok = false;
         }
 
-        printf("src:");
-        for (size_t i = 0; i < ARRAY_COUNT(src_data); ++i) {
-            printf(" %.2f", src_data[i]);
-        }
-        printf("\n");
-
-        printf("dst:");
-        for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
-            printf(" %.2f", dst_data[i]);
-        }
-        printf("\n");
-
-        printf("expected_dst:");
-        for (size_t i = 0; i < ARRAY_COUNT(expected_dst_data); ++i) {
-            printf(" %.2f", expected_dst_data[i]);
-        }
-        printf("\n");
-
         for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
             if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.03f*expected_dst_data[i]) {
                 test_ok = false;
@@ -440,6 +422,24 @@ int main()
             printf("Test %d: successful\n", test_number);
         } else {
             printf("Test %d: FAIL (%d)\n", test_number, conversion_result);
+
+            printf("src:");
+            for (size_t i = 0; i < ARRAY_COUNT(src_data); ++i) {
+                printf(" %.2f", src_data[i]);
+            }
+            printf("\n");
+
+            printf("dst:");
+            for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
+                printf(" %.2f", dst_data[i]);
+            }
+            printf("\n");
+
+            printf("expected_dst:");
+            for (size_t i = 0; i < ARRAY_COUNT(expected_dst_data); ++i) {
+                printf(" %.2f", expected_dst_data[i]);
+            }
+            printf("\n");
         }
 
         test_number++;
@@ -474,24 +474,6 @@ int main()
             test_ok = false;
         }
 
-        printf("src:");
-        for (size_t i = 0; i < ARRAY_COUNT(src_data); ++i) {
-            printf(" %.2f", src_data[i]);
-        }
-        printf("\n");
-
-        printf("dst:");
-        for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
-            printf(" %.2f", dst_data[i]);
-        }
-        printf("\n");
-
-        printf("expected_dst:");
-        for (size_t i = 0; i < ARRAY_COUNT(expected_dst_data); ++i) {
-            printf(" %.2f", expected_dst_data[i]);
-        }
-        printf("\n");
-
         for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
             if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.03f*expected_dst_data[i]) {
                 test_ok = false;
@@ -502,6 +484,24 @@ int main()
             printf("Test %d: successful\n", test_number);
         } else {
             printf("Test %d: FAIL (%d)\n", test_number, conversion_result);
+
+            printf("src:");
+            for (size_t i = 0; i < ARRAY_COUNT(src_data); ++i) {
+                printf(" %.2f", src_data[i]);
+            }
+            printf("\n");
+
+            printf("dst:");
+            for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
+                printf(" %.2f", dst_data[i]);
+            }
+            printf("\n");
+
+            printf("expected_dst:");
+            for (size_t i = 0; i < ARRAY_COUNT(expected_dst_data); ++i) {
+                printf(" %.2f", expected_dst_data[i]);
+            }
+            printf("\n");
         }
 
         test_number++;
@@ -543,24 +543,6 @@ int main()
             test_ok = false;
         }
 
-        printf("src:");
-        for (size_t i = 0; i < ARRAY_COUNT(src_data); ++i) {
-            printf(" %.2f", src_data[i]);
-        }
-        printf("\n");
-
-        printf("dst:");
-        for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
-            printf(" %.2f", dst_data[i]);
-        }
-        printf("\n");
-
-        printf("expected_dst:");
-        for (size_t i = 0; i < ARRAY_COUNT(expected_dst_data); ++i) {
-            printf(" %.2f", expected_dst_data[i]);
-        }
-        printf("\n");
-
         for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
             if (fabsf(dst_data[i] - expected_dst_data[i]) > 0.03f*expected_dst_data[i]) {
                 test_ok = false;
@@ -571,6 +553,24 @@ int main()
             printf("Test %d: successful\n", test_number);
         } else {
             printf("Test %d: FAIL (%d)\n", test_number, conversion_result);
+
+            printf("src:");
+            for (size_t i = 0; i < ARRAY_COUNT(src_data); ++i) {
+                printf(" %.2f", src_data[i]);
+            }
+            printf("\n");
+
+            printf("dst:");
+            for (size_t i = 0; i < ARRAY_COUNT(dst_data); ++i) {
+                printf(" %.2f", dst_data[i]);
+            }
+            printf("\n");
+
+            printf("expected_dst:");
+            for (size_t i = 0; i < ARRAY_COUNT(expected_dst_data); ++i) {
+                printf(" %.2f", expected_dst_data[i]);
+            }
+            printf("\n");
         }
 
         test_number++;
