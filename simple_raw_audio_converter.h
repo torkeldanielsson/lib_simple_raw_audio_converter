@@ -155,14 +155,16 @@ int32_t lsrac_convert_audio(
                 size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_step);
 
                 float * actual_src_data = src_data - src_stride * (uint64_t)src_extra_samples_before;
+                current_src_sample += src_extra_samples_before;
+                current_src_sample *= src_stride;
 
-                while (current_src_sample >= -src_extra_samples_before &&
+                while (current_src_sample >= 0 &&
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
-                    value += lsrac_filter.coefficients[current_filter_pos] * actual_src_data[src_stride * uint64_t(current_src_sample + src_extra_samples_before)];
+                    value += lsrac_filter.coefficients[current_filter_pos] * actual_src_data[static_cast<size_t>(current_src_sample)];
                     normalization_value += lsrac_filter.coefficients[current_filter_pos];
 
-                    current_src_sample--;
+                    current_src_sample -= src_stride;
                     current_filter_pos += filter_pos_increment;
                 }
             }
@@ -173,13 +175,15 @@ int32_t lsrac_convert_audio(
                 float dst_pos_to_src_pos_ticks = static_cast<float>(current_src_sample) * src_ticks_per_sample + src_half_sample_offset_ticks - current_time_ticks;
                 size_t current_filter_pos = static_cast<size_t>(dst_pos_to_src_pos_ticks / ticks_per_filter_step);
 
-                while (current_src_sample < static_cast<int64_t>(src_samples + (uint64_t)src_extra_samples_after) &&
+                current_src_sample *= src_stride;
+
+                while (current_src_sample < static_cast<int64_t>(src_stride*(src_samples + (uint64_t)src_extra_samples_after)) &&
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
-                    value += lsrac_filter.coefficients[current_filter_pos] * src_data[src_stride * uint64_t(current_src_sample)];
+                    value += lsrac_filter.coefficients[current_filter_pos] * src_data[static_cast<size_t>(current_src_sample)];
                     normalization_value += lsrac_filter.coefficients[current_filter_pos];
 
-                    current_src_sample++;
+                    current_src_sample += src_stride;
                     current_filter_pos += filter_pos_increment;
                 }
             }
@@ -237,7 +241,7 @@ int32_t lsrac_convert_audio(
 
                 current_src_sample *= src_stride;
 
-                while (current_src_sample < static_cast<int64_t>(src_samples + (uint64_t)src_extra_samples_after) &&
+                while (current_src_sample < static_cast<int64_t>(src_stride*(src_samples + (uint64_t)src_extra_samples_after)) &&
                        current_filter_pos < ARRAY_COUNT(lsrac_filter.coefficients)) {
 
                     value += lsrac_filter.coefficients[current_filter_pos] * src_data[static_cast<size_t>(current_src_sample)];
